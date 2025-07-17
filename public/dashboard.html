@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Tienda León 13</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f2f2f2;
+      text-align: center;
+    }
+    h1 { color: #333; }
+    .username {
+      font-size: 1.2em;
+      margin-bottom: 30px;
+      color: #444;
+    }
+    .btn {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      background-color: #007BFF;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .logout {
+      background-color: #dc3545;
+    }
+    .logout:hover {
+      background-color: #a71d2a;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Tienda León 13 - Dashboard</h1>
+  <div class="username" id="userName">Bienvenido, usuario</div>
+
+  <a href="inventory.html" class="btn">🛒 Inventario</a>
+  <a href="factura.html" class="btn">🧾 Ventas / Facturación</a>
+  <a href="historial.html" class="btn">📚 Historial de Facturas</a>
+  <button onclick="cerrarSesion()" class="btn logout">Cerrar sesión</button>
+
+  <script>
+    // Mostrar el nombre del usuario
+    const usuario = localStorage.getItem('usuario');
+    if (usuario) {
+      document.getElementById('userName').textContent = `Bienvenido, ${usuario}!`;
+    }
+
+    // Función para cerrar sesión
+    function cerrarSesion() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'login.html';
+    }
+  </script>
+
+</body>
+</html>
+

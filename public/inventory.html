@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventario - Tienda León 13</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    .low-stock { background-color: #f8d7da; } /* rojo suave para alerta */
+    form { margin-top: 20px; }
+    label { display: inline-block; width: 100px; }
+    input, select { padding: 5px; margin-bottom: 10px; width: 200px; }
+    button { padding: 6px 12px; cursor: pointer; }
+    .btn-regresar {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 8px 15px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .btn-regresar:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Botón para regresar al dashboard -->
+  <button class="btn-regresar" onclick="window.location.href='dashboard.html'">← Volver al Inicio</button>
+  
+  <h1>Inventario - Tienda León 13</h1>
+
+  <table id="inventoryTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Cantidad</th>
+        <th>Precio</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Agregar Producto</h2>
+  <form id="addProductForm">
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" required /><br />
+    <label for="categoria">Categoría:</label>
+    <select id="categoria" required>
+      <option value="Viveres">Viveres</option>
+      <option value="Licores">Licores</option>
+      <option value="Rancho">Rancho</option>
+    </select><br />
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" min="0" required /><br />
+    <label for="precio">Precio:</label>
+    <input type="number" id="precio" min="0" step="0.01" required /><br />
+    <button type="submit">Agregar Producto</button>
+  </form>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/api/inventory';
+
+    // Cargar inventario y mostrarlo
+    async function loadInventory() {
+      const res = await fetch(apiUrl);
+      const inventory = await res.json();
+      const tbody = document.querySelector('#inventoryTable tbody');
+      tbody.innerHTML = '';
+
+      inventory.forEach(producto => {
+        const tr = document.createElement('tr');
+        if (producto.cantidad < 5) {
+          tr.classList.add('low-stock');
+        }
+        tr.innerHTML = `
+          <td>${producto.id}</td>
+          <td>${producto.nombre}</td>
+          <td>${producto.categoria}</td>
+          <td>${producto.cantidad}</td>
+          <td>$${producto.precio.toFixed(2)}</td>
+          <td>
+            <button onclick="editarCantidad(${producto.id}, ${producto.cantidad})">Editar Cantidad</button>
+            <button onclick="eliminarProducto(${producto.id})">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Agregar producto
+    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value.trim();
+      const categoria = document.getElementById('categoria').value;
+      const cantidad = parseInt(document.getElementById('cantidad').value);
+      const precio = parseFloat(document.getElementById('precio').value);
+
+      if (!nombre || cantidad < 0 || precio < 0) {
+        alert('Por favor completa todos los campos correctamente');
+        return;
+      }
+
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, categoria, cantidad, precio })
+      });
+
+      if (res.ok) {
+        alert('Producto agregado');
+        e.target.reset();
+        loadInventory();
+      } else {
+        alert('Error al agregar producto');
+      }
+    });
+
+    // Editar cantidad producto
+    async function editarCantidad(id, cantidadActual) {
+      const nuevaCantidad = prompt('Ingrese la nueva cantidad', cantidadActual);
+      if (nuevaCantidad === null) return;
+
+      const cantidadNum = parseInt(nuevaCantidad);
+      if (isNaN(cantidadNum) || cantidadNum < 0) {
+        alert('Cantidad inválida');
+        return;
+      }
+
+      const res = await fetch(`${apiUrl}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cantidad: cantidadNum })
+      });
+
+      if (res.ok) {
+        alert('Cantidad actualizada');
+        loadInventory();
+      } else {
+        alert('Error al actualizar cantidad');
+      }
+    }
+
+    // Eliminar producto
+    async function eliminarProducto(id) {
+      if (!confirm('¿Seguro que quieres eliminar este producto?')) return;
+
+      const res = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('Producto eliminado');
+        loadInventory();
+      } else {
+        alert('Error al eliminar producto');
+      }
+    }
+
+    loadInventory();
+  </script>
+</body>
+</html>
+

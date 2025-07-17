@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generar Factura - Tienda León 13</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    .form-section { margin-bottom: 20px; }
+    input, select, button { padding: 8px; margin: 5px; }
+    h2 { margin-top: 40px; }
+    #resumenFactura { margin-top: 30px; border-top: 1px solid #aaa; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Factura - Tienda León 13</h1>
+
+  <div class="form-section">
+    <label>Nombre del Cliente:</label>
+    <input type="text" id="cliente" required />
+    <label>Cédula:</label>
+    <input type="text" id="cedula" required />
+  </div>
+
+  <div class="form-section">
+    <label>Producto:</label>
+    <select id="productoSelect"></select>
+    <label>Cantidad:</label>
+    <input type="number" id="cantidad" min="1" value="1" />
+    <button onclick="agregarProducto()">Agregar</button>
+  </div>
+
+  <h2>Detalle de la factura</h2>
+  <table id="detalleFactura">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Precio Unitario</th>
+        <th>Cantidad</th>
+        <th>Total</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Total a pagar: $<span id="total">0</span></h3>
+
+  <button onclick="generarFactura()">Generar Factura</button>
+  <br />
+  <button onclick="window.location.href='historial.html'">Ver Historial de Facturas</button>
+
+  <div id="resumenFactura"></div>
+
+  <script>
+    let productosDisponibles = [];
+    let productosFactura = [];
+
+    async function cargarProductos() {
+      try {
+        const res = await fetch('http://localhost:3000/api/inventory');
+        productosDisponibles = await res.json();
+        const select = document.getElementById('productoSelect');
+        select.innerHTML = '';
+        productosDisponibles.forEach(prod => {
+          const option = document.createElement('option');
+          option.value = prod.id;
+          option.textContent = `${prod.nombre} - $${prod.precio}`;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        alert('Error al cargar productos');
+        console.error(err);
+      }
+    }
+
+    function agregarProducto() {
+      const productoId = parseInt(document.getElementById('productoSelect').value);
+      const cantidad = parseInt(document.getElementById('cantidad').value);
+      const producto = productosDisponibles.find(p => p.id === productoId);
+
+      if (!producto || cantidad <= 0) {
+        alert('Producto o cantidad inválida');
+        return;
+      }
+
+      const existente = productosFactura.find(p => p.id === producto.id);
+      if (existente) {
+        existente.cantidad += cantidad;
+      } else {
+        productosFactura.push({ ...producto, cantidad });
+      }
+
+      renderFactura();
+    }
+
+    function eliminarProducto(id) {
+      productosFactura = productosFactura.filter(p => p.id !== id);
+      renderFactura();
+    }
+
+    function renderFactura() {
+      const tbody = document.querySelector('#detalleFactura tbody');
+      tbody.innerHTML = '';
+      let total = 0;
+
+      productosFactura.forEach(p => {
+        const subtotal = p.precio * p.cantidad;
+        total += subtotal;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.nombre}</td>
+          <td>$${p.precio.toFixed(2)}</td>
+          <td>${p.cantidad}</td>
+          <td>$${subtotal.toFixed(2)}</td>
+          <td><button onclick="eliminarProducto(${p.id})">❌</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    async function generarFactura() {
+      const cliente = document.getElementById('cliente').value.trim();
+      const cedula = document.getElementById('cedula').value.trim();
+      const total = document.getElementById('total').textContent;
+
+      if (!cliente || !cedula || productosFactura.length === 0) {
+        alert('Completa todos los datos y agrega al menos un producto');
+        return;
+      }
+
+      try {
+        const respuesta = await fetch('http://localhost:3000/api/facturas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cliente,
+            cedula,
+            productos: productosFactura,
+            total: parseFloat(total)
+          })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+          alert('Factura guardada con éxito');
+          mostrarResumen(resultado.factura);
+          productosFactura = [];
+          renderFactura();
+        } else {
+          alert('Error al guardar factura: ' + resultado.mensaje);
+        }
+      } catch (error) {
+        alert('Error al enviar factura');
+        console.error(error);
+      }
+    }
+
+    function mostrarResumen(factura) {
+      let html = `
+        <h2>Factura guardada</h2>
+        <p><strong>Cliente:</strong> ${factura.cliente}</p>
+        <p><strong>Cédula:</strong> ${factura.cedula}</p>
+        <p><strong>Fecha:</strong> ${new Date(factura.fecha).toLocaleString()}</p>
+        <table border="1" cellpadding="5" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Cantidad</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      factura.productos.forEach(p => {
+        html += `
+          <tr>
+            <td>${p.nombre}</td>
+            <td>$${p.precio.toFixed(2)}</td>
+            <td>${p.cantidad}</td>
+            <td>$${(p.precio * p.cantidad).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+        <h3>Total pagado: $${factura.total.toFixed(2)}</h3>
+        <button onclick="window.print()">Imprimir</button>
+      `;
+
+      document.getElementById('resumenFactura').innerHTML = html;
+    }
+
+    cargarProductos();
+  </script>
+</body>
+</html>
+

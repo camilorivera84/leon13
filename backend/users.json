@@ -1,0 +1,21 @@
+[
+  {
+    "username": "camilo",
+    "email": "camilo@leon13.com",
+    "password": "$2b$08$8Xp3UZYeqPiB9uOE8KHlTujns8bU.Yr9zL/blaew0kfnlriTBW2Rq"
+  },
+  {
+    "username": "andres",
+    "email": "andres@leon13.com",
+    "password": "$2b$08$6ltk1jofVxzfKdgBDDHgCuceEeusFKl5s50NMYUXSth9kGYCVfBR6"
+  },
+  {
+    "username": "maria",
+    "email": "maria@leon13.com",
+    "password": "123456"
+  },
+  {
+    "username": "camilo1",
+    "password": "123456"
+  }
+]

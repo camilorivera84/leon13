@@ -1,0 +1,30 @@
+[
+  {
+    "id": 2,
+    "nombre": "Ron Medellin",
+    "categoria": "Licores",
+    "cantidad": 8,
+    "precio": 18000
+  },
+  {
+    "id": 3,
+    "nombre": "WISKY SELLO AZUL",
+    "categoria": "Licores",
+    "cantidad": 10,
+    "precio": 200000
+  },
+  {
+    "id": 1752791024077,
+    "nombre": "arroz",
+    "categoria": "Viveres",
+    "cantidad": 10,
+    "precio": 2800
+  },
+  {
+    "id": 1752791157811,
+    "nombre": "escoba",
+    "categoria": "Rancho",
+    "cantidad": 15,
+    "precio": 12000
+  }
+]

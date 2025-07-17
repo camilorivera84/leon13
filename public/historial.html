@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historial de Facturas - Tienda León 13</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; }
+    h1 { text-align: center; }
+    .buttons { text-align: center; margin-bottom: 20px; }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .factura {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .factura h3 { margin-top: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .no-data {
+      text-align: center;
+      font-size: 1.1em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <h1>Historial de Facturas</h1>
+
+  <div class="buttons">
+    <button onclick="window.location.href='factura.html'">← Volver a Factura</button>
+    <button onclick="window.location.href='index.html'">🏠 Ir al Inicio</button>
+  </div>
+
+  <div id="facturasContainer">Cargando facturas...</div>
+
+  <script>
+    async function cargarFacturas() {
+      try {
+        const res = await fetch('http://localhost:3000/api/facturas');
+        const facturas = await res.json();
+        const container = document.getElementById('facturasContainer');
+        container.innerHTML = '';
+
+        if (facturas.length === 0) {
+          container.innerHTML = '<p class="no-data">No hay facturas registradas.</p>';
+          return;
+        }
+
+        facturas.reverse().forEach(factura => {
+          const div = document.createElement('div');
+          div.classList.add('factura');
+
+          let productosHTML = factura.productos.map(p => `
+            <tr>
+              <td>${p.nombre}</td>
+              <td>$${p.precio.toFixed(2)}</td>
+              <td>${p.cantidad}</td>
+              <td>$${(p.precio * p.cantidad).toFixed(2)}</td>
+            </tr>
+          `).join('');
+
+          div.innerHTML = `
+            <h3>Factura #${factura.id || '-'}</h3>
+            <p><strong>Cliente:</strong> ${factura.cliente}</p>
+            <p><strong>Cédula:</strong> ${factura.cedula}</p>
+            <p><strong>Fecha:</strong> ${new Date(factura.fecha).toLocaleString()}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Cantidad</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productosHTML}
+              </tbody>
+            </table>
+            <p><strong>Total:</strong> $${factura.total.toFixed(2)}</p>
+          `;
+
+          container.appendChild(div);
+        });
+
+      } catch (error) {
+        document.getElementById('facturasContainer').innerHTML = '<p class="no-data">Error al cargar facturas.</p>';
+        console.error('Error:', error);
+      }
+    }
+
+    cargarFacturas();
+  </script>
+</body>
+</html>
+
