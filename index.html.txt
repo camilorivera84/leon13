@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tienda León 13</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+  <header>
+    <h1>Tienda León 13</h1>
+    <nav>
+      <a href="login.html">Iniciar sesión</a>
+      <a href="register.html">Registrarse</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Bienvenido a Tienda León 13</h2>
+      <p>Venta de productos de rancho, víveres y licores</p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Tienda León 13</p>
+  </footer>
+</body>
+</html>
